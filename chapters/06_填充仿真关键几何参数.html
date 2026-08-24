@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>06 · 填充仿真关键几何参数 · 项目学习笔记</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <span class="brand">📚 项目学习笔记</span>
+    <span class="sep">/</span>
+    <a href="../index.html">目录</a>
+    <span class="sep">/</span>
+    <span>06 · 填充仿真关键几何参数</span>
+  </div>
+</header>
+
+<main>
+  <h1>06 · 填充仿真关键几何参数：哪些结构尺寸决定流动、温度、应力与缺陷</h1>
+
+  <div class="meta">
+    <p>来源：联网文献检索 + <code>知识库/01_前沿文献/00_重点文献索引.md</code> + <code>WEEK 1/02_学习笔记/02_封装填充工艺_underfill与塑封.md</code> ｜
+    更新时间：2026-08-24 ｜ 状态：<strong>文献初稿，待本人审阅后再编入 PPT</strong> ｜
+    用途：回答“神经网络物理仿真里，底填/塑封部分该把哪些几何与工艺参数作为输入”。</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">本页目录</div>
+    <ol>
+      <li><a href="#sec0">一句话结论</a></li>
+      <li><a href="#sec1">速查表：几何/工艺参数 × 物理场与缺陷</a></li>
+      <li><a href="#sec2">流动与填充：哪些尺寸在“管”流动前沿与空洞</a></li>
+      <li><a href="#sec3">固化与热：哪些尺寸在“管”温度场与残余应力</a></li>
+      <li><a href="#sec4">应力/翘曲：哪些尺寸在“管”翘曲与界面应力</a></li>
+      <li><a href="#sec5">四类缺陷与几何参数的对应</a></li>
+      <li><a href="#sec6">与神经网络建模的对应</a></li>
+      <li><a href="#sec7">来源清单（全部可点击）</a></li>
+      <li><a href="#sec8">存疑与待核实</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="sec0">0. 一句话结论</h2>
+  <blockquote>
+    <p><strong>填充仿真的几何输入，核心是“缝隙几何 + 芯片/模腔几何 + 材料填料几何”。</strong></p>
+  </blockquote>
+  <ul>
+    <li>流动与空洞 ← 芯片-载体间隙高度、bump 节距与阵列方向、芯片尺寸/长宽比、填料粒径 vs 间隙、模腔厚度与排气；</li>
+    <li>温度场与固化应力 ← die/基板/模帽厚度、温度历史、固化收缩；</li>
+    <li>翘曲与界面应力 ← die 厚度、模帽厚度、叠层对称性、fillet 几何；</li>
+    <li>缺陷（die shift / 分层 / 焊料挤出）← 芯片厚度与面积、流动方向、界面几何、bump 节距与焊料体积、模塑压力。</li>
+  </ul>
+
+  <h2 id="sec1">1. 速查表：几何/工艺参数 × 物理场与缺陷</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>物理场/缺陷</th><th>主要几何/工艺参数</th><th>文献给出的影响方向</th><th>出处</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>流动 / 填充时间 / 空洞</td>
+          <td>间隙高度、bump 节距与阵列、芯片尺寸与长宽比、填料粒径与含量、模腔/排气、分配位置</td>
+          <td>BGA 阵列结构直接影响毛细底填流动 <a href="#s1">[S1]</a>；微尺度底填动力学与空洞形成由间隙与 bump 阵列决定 <a href="#s2">[S2]</a><a href="#s3">[S3]</a>；细间距 MUF 空洞风险可参数化仿真 <a href="#s5">[S5]</a>；填料越多 CTE 越低但流动越差 <a href="#s12">[S12]</a><a href="#s13">[S13]</a></td>
+          <td>§2</td>
+        </tr>
+        <tr>
+          <td>温度场 / 固化残余应力</td>
+          <td>die/基板/模帽厚度、固化温度历史、固化收缩率</td>
+          <td>冷却收缩不均产生热应力与残余应力 <a href="#s11">[S11]</a><a href="#s13">[S13]</a>；模塑料体积与厚度改变翘曲趋势（CoW 研究）<a href="#s10">[S10]</a><a href="#s11">[S11]</a></td>
+          <td>§3</td>
+        </tr>
+        <tr>
+          <td>翘曲 / 界面应力</td>
+          <td>die 厚度、模帽厚度、叠层对称性、fillet 几何</td>
+          <td>统一 die 厚度可控制单元翘曲 <a href="#s9">[S9]</a>；封装几何可直接控制翘曲与 die 应力（专利方案）<a href="#s10">[S10]</a>；2.5D 模塑 chiplet 翘曲与叠层强相关 <a href="#s11">[S11]</a><a href="#s18">[S18]</a>；fillet 参与界面力与分层 <a href="#s17">[S17]</a><a href="#s21">[S21]</a></td>
+          <td>§4</td>
+        </tr>
+        <tr>
+          <td>缺陷：die shift / 分层 / 焊料挤出</td>
+          <td>芯片厚度与面积、流动方向与压力、界面几何、bump 节距与焊料体积</td>
+          <td>流动拖曳推动未固定芯片 → die shift，可预补偿 <a href="#s6">[S6]</a><a href="#s7">[S7]</a><a href="#s8">[S8]</a>；底填分层可建模并最小化 <a href="#s17">[S17]</a>；细间距焊料在模塑压力下挤出/桥接 <a href="#s4">[S4]</a><a href="#s19">[S19]</a></td>
+          <td>§5</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="sec2">2. 流动与填充：哪些尺寸在“管”流动前沿与空洞</h2>
+
+  <h3>2.1 文献明确出现的几何量</h3>
+  <ol>
+    <li><strong>芯片-载体间隙高度（gap / standoff）</strong>：毛细底填靠间隙内的毛细力推进，缝隙越窄、流动越慢、填充时间越长，越容易形成流动空洞；窄间隙填充能力是材料与结构联合指标 <a href="#s12">[S12]</a><a href="#s14">[S14]</a>。</li>
+    <li><strong>bump 节距、阵列与方向</strong>：倒装 BGA 阵列结构（节距、排列方式）直接影响毛细底填流动路径 <a href="#s1">[S1]</a>；高密度 flip-chip 的微尺度底填动力学与空洞形成由 bump 阵列几何决定 <a href="#s2">[S2]</a>；多尺度建模可预测流动与空洞 <a href="#s3">[S3]</a>。</li>
+    <li><strong>芯片尺寸与长宽比</strong>：流动长度随芯片尺寸增大而增大，大面积细间距芯片的填充时间与空洞风险显著上升（CUF 在 chiplet 场景吃力的原因）<a href="#s12">[S12]</a><a href="#s14">[S14]</a>。</li>
+    <li><strong>填料粒径与含量</strong>：填料粒径相对间隙过大 → 团聚/架桥/阻塞；填料含量越高黏度越大、CTE 越低——流动性与低翘曲互相打架 <a href="#s12">[S12]</a><a href="#s13">[S13]</a>。</li>
+    <li><strong>模腔厚度、排气与分配位置（模塑侧）</strong>：压缩模塑的模腔设计（厚度、vent/排气、EMC 分配量与位置）决定空气裹入与填充完整性 <a href="#s15">[S15]</a><a href="#s16">[S16]</a>；“一芯片 + 多 decaps”晶圆级压缩模塑有专门的工艺-结构优化研究 <a href="#s24">[S24]</a>。</li>
+    <li><strong>MUF 的窄缝空洞风险</strong>：FC-POP 模塑底填的空洞风险已用参数化研究（两相、可压缩流/多孔介质模型）仿真预测 <a href="#s5">[S5]</a>；20 μm 以下细间距 CoW 的两种模塑方法对比给出工艺窗口 <a href="#s4">[S4]</a>。</li>
+  </ol>
+
+  <h3>2.2 进入神经网络模型的建议</h3>
+  <ul>
+    <li><strong>输入几何/材料</strong>：间隙高度、bump 节距/阵列/方向、芯片长宽尺寸、填料粒径与含量、模腔厚度、排气与分配位置、黏度-温度曲线；</li>
+    <li><strong>输出物理量</strong>：流动前沿位置与时间、压力场、空洞率与空洞位置；</li>
+    <li><strong>提示</strong>：流动问题本质是“几何约束下的两相流”，先做参数化 CFD/FEM 数据再训练代理模型（与 <a href="#s5">[S5]</a> 路线一致）。</li>
+  </ul>
+
+  <h2 id="sec3">3. 固化与热：哪些尺寸在“管”温度场与残余应力</h2>
+  <ol>
+    <li><strong>各层厚度（die / 基板 / 模帽）</strong>：决定热阻路径、热容与翘曲刚度；模塑料体积与厚度直接改变 CoW 翘曲趋势 <a href="#s10">[S10]</a><a href="#s11">[S11]</a>。</li>
+    <li><strong>固化/回流温度历史（150–260 ℃ → 室温）</strong>：冷却阶段各层收缩量不同，残余应力在冷却时“冻结” <a href="#s11">[S11]</a><a href="#s13">[S13]</a>。</li>
+    <li><strong>固化收缩率</strong>：EMC/底填的化学固化收缩叠加在热收缩上，增大残余应力与翘曲 <a href="#s13">[S13]</a>。</li>
+    <li><strong>材料热导率与功率密度</strong>：底填/塑封把热从芯片导出，材料热导与功率图共同决定结温与热点（2.5D/3D 散热综述 <a href="#s20">[S20]</a>；bump/underfill 热行为实验 <a href="#s10h">[S10h]</a>）。</li>
+  </ol>
+  <h3>3.1 进入神经网络模型的建议</h3>
+  <ul>
+    <li><strong>输入</strong>：各层厚度、固化/冷却温度曲线、固化收缩率、材料 CTE(T)/热导率、功率图；</li>
+    <li><strong>输出</strong>：温度场、固化度、残余应力场。</li>
+  </ul>
+
+  <h2 id="sec4">4. 应力/翘曲：哪些尺寸在“管”翘曲与界面应力</h2>
+  <ol>
+    <li><strong>die 厚度</strong>：统一/匹配 die 厚度是控制单元翘曲的手段 <a href="#s9">[S9]</a>。</li>
+    <li><strong>模帽厚度与塑封料体积</strong>：封装几何（模帽、基板、芯片厚度与位置）直接用于翘曲与 die 应力控制 <a href="#s10">[S10]</a>；模塑 2.5D chiplet 的翘曲与应力分析把叠层作为核心变量 <a href="#s11">[S11]</a>；存储-计算 chiplet 的 2.5D 翘曲优化同样落在叠层参数上 <a href="#s18">[S18]</a>。</li>
+    <li><strong>叠层对称性</strong>：对称叠层让上下收缩趋势互相抵消，是低翘曲设计的常规手段 <a href="#s10">[S10]</a><a href="#s13">[S13]</a>。</li>
+    <li><strong>间隙高度与 fillet 几何</strong>：底填 fillet 参与界面力分配与分层风险 <a href="#s17">[S17]</a>；回流过程中 fillet 力与 bump 几何耦合（无流动底填场景）<a href="#s21">[S21]</a>。</li>
+  </ol>
+  <h3>4.1 进入神经网络模型的建议</h3>
+  <ul>
+    <li><strong>输入几何</strong>：die/基板/模帽厚度、芯片位置与对称性、间隙高度、fillet 尺寸（高度/润湿角）、材料 CTE/模量/Tg；</li>
+    <li><strong>输出物理量</strong>：翘曲形貌、界面应力、疲劳寿命判据。</li>
+  </ul>
+
+  <h2 id="sec5">5. 四类缺陷与几何参数的对应</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>缺陷</th><th>直接相关的几何/工艺参数</th><th>文献依据</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>空洞 Void</td><td>间隙高度、bump 阵列与方向、芯片尺寸、填料粒径/含量、模腔与排气、分配位置</td><td><a href="#s1">[S1]</a><a href="#s2">[S2]</a><a href="#s3">[S3]</a><a href="#s5">[S5]</a><a href="#s15">[S15]</a></td></tr>
+        <tr><td>芯片偏移 Die shift</td><td>芯片厚度/面积（受力面积）、模塑流动方向与速度、载板 CTE、胶量分配</td><td><a href="#s6">[S6]</a><a href="#s7">[S7]</a><a href="#s8">[S8]</a></td></tr>
+        <tr><td>分层 Delamination</td><td>界面几何（角部/边缘曲率）、fillet 尺寸、吸湿与湿热载荷</td><td><a href="#s17">[S17]</a><a href="#s12">[S12]</a></td></tr>
+        <tr><td>焊料挤出 / 桥接</td><td>bump 节距、焊料体积/高度、模塑压力与温度窗口</td><td><a href="#s4">[S4]</a><a href="#s19">[S19]</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <blockquote>
+    <p>注意：缺陷不是单一参数的结果，而是“几何 + 材料 + 工艺窗口”的组合输出——这也是仿真要参数化扫描的原因 <a href="#s5">[S5]</a><a href="#s14">[S14]</a>。</p>
+  </blockquote>
+
+  <h2 id="sec6">6. 与神经网络建模的对应（初步建议，待与师兄确认）</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>工艺阶段 / 子域</th><th>建议的几何与工艺输入</th><th>对应输出</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>底填流动（CUF/NFU/MUF）</td><td>间隙高度、bump 节距/阵列、芯片尺寸、填料粒径与含量、黏度</td><td>填充时间、压力场、空洞率与位置</td></tr>
+        <tr><td>模塑/塑封</td><td>模腔厚度、排气、分配位置、芯片厚度与布局、压力-温度曲线</td><td>流动前沿、die shift、裹气风险</td></tr>
+        <tr><td>固化与冷却</td><td>固化温度历史、固化收缩率、各层厚度</td><td>温度场、固化度、残余应力</td></tr>
+        <tr><td>翘曲与可靠性</td><td>die/模帽/基板厚度、叠层对称性、fillet 几何、CTE/模量/Tg</td><td>翘曲形貌、界面应力、分层/疲劳判据</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <blockquote>
+    <p>与互连章（05）合起来，模型输入可以概括为：<strong>互连几何（bump/pillar/pad）+ 填充几何（gap/芯片/模腔）+ 材料参数（CTE/模量/Tg/黏度/热导）+ 工艺热历史（回流/固化/循环）</strong>。</p>
+  </blockquote>
+
+  <h2 id="sec7">7. 来源清单（全部可点击）</h2>
+  <h3>流动与空洞</h3>
+  <ul>
+    <li id="s1">[S1] ScienceDirect: <a href="https://www.sciencedirect.com/science/article/pii/S2590123024007825" target="_blank" rel="noopener">Effect of flip-chip ball grid array structure on capillary underfill flow</a></li>
+    <li id="s2">[S2] Physics of Fluids 2024, 36(3):032117: <a href="https://pubs.aip.org/aip/pof/article-abstract/36/3/032117/3271013/Microscale-underfill-dynamics-and-void-formation" target="_blank" rel="noopener">Microscale underfill dynamics and void formation of high-density flip-chip packaging: Experiments and simulations</a></li>
+    <li id="s3">[S3] IEEE ECTC: <a href="https://www.infona.pl/resource/bwmeta1.element.ieee-art-000005074297" target="_blank" rel="noopener">A multiscale modeling and experimental study of underfill flow and void formation for flip-chip packages</a></li>
+    <li id="s4">[S4] IEEE ECTC 2024: <a href="https://ieeexplore.ieee.org/document/10565201" target="_blank" rel="noopener">20 μm 以下细间距 CoW 的两种模塑方法</a></li>
+    <li id="s5">[S5] IEEE: <a href="https://ieeexplore.ieee.org/document/9056458" target="_blank" rel="noopener">Parametric Study on the Void Risk in FC-POP Molded Underfill Process</a></li>
+    <li id="s24">[S24] IEEE: <a href="https://xplorestaging.ieee.org/document/7106473" target="_blank" rel="noopener">Design and Optimization of Wafer-Level Compression Molding Process for One Chip Plus Multiple Decaps</a></li>
+    <li id="s14">[S14] IEEE: <a href="https://ieeexplore.ieee.org/document/10195461" target="_blank" rel="noopener">Liquid Compression Mold Underfill Optimization with Low Warpage and Narrow Gap Flow</a></li>
+  </ul>
+  <h3>die shift / 模塑工艺</h3>
+  <ul>
+    <li id="s6">[S6] Micromachines 2018（PMC 开放获取）: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6190190/" target="_blank" rel="noopener">Compensation Method for Die Shift Caused by Flow Drag Force in Wafer-Level Molding Process</a></li>
+    <li id="s7">[S7] MDPI Electronics 2023, 12(9):2073: <a href="https://www.mdpi.com/2079-9292/12/9/2073" target="_blank" rel="noopener">Synthesized Improvement of Die Fly and Die Shift Concerning the Wafer Molding Process（含 mold flow simulation）</a></li>
+    <li id="s8">[S8] IEEE: <a href="https://www.infona.pl/resource/bwmeta1.element.ieee-art-000006184455" target="_blank" rel="noopener">Numerical study of preventing flow-induced die-shift in the compression molding for embedded wafer level packaging</a></li>
+    <li id="s15">[S15] IEEE: <a href="https://ieeexplore.ieee.org/document/9159430" target="_blank" rel="noopener">Development of compression molding process for Fan-Out wafer level packaging</a></li>
+    <li id="s16">[S16] IEEE: <a href="https://ieeexplore.ieee.org/document/9159252" target="_blank" rel="noopener">New Molding Technology Enabling Advanced Packaging Technology</a></li>
+  </ul>
+  <h3>翘曲 / 应力 / 分层</h3>
+  <ul>
+    <li id="s9">[S9] IEEE: <a href="https://ieeexplore.ieee.org/document/7028392" target="_blank" rel="noopener">Unit Warpage Control with Universal Die Thickness</a></li>
+    <li id="s10">[S10] Amkor 专利 US2016/0172214: <a href="https://FreePatentsOnline.com/y2016/0172214.html" target="_blank" rel="noopener">Molded Electronic Package Geometry To Control Warpage And Die Stress</a></li>
+    <li id="s11">[S11] IEEE ECTC: <a href="https://ieeexplore.ieee.org/document/10818872" target="_blank" rel="noopener">Warpage and Stress Analysis in Molded 2.5D Package Chiplet Integration</a></li>
+    <li id="s18">[S18] Emerald: <a href="https://www.emerald.com/ssmt/article-abstract/37/3/205/1264332/" target="_blank" rel="noopener">Warpage optimization of memory-computing integrated chiplets with 2.5D packaging</a></li>
+    <li id="s17">[S17] IEEE: <a href="https://xplorestaging.ieee.org/document/1284304" target="_blank" rel="noopener">Investigation and minimization of underfill delamination in flip chip packages</a></li>
+    <li id="s21">[S21] IEEE: <a href="https://ieeexplore.ieee.org/abstract/document/1176914" target="_blank" rel="noopener">A computational study on solder bump geometry, normal, restoring, and fillet forces during solder reflow in the presence of liquefied underfill</a></li>
+  </ul>
+  <h3>材料与综述</h3>
+  <ul>
+    <li id="s12">[S12] MDPI Polymers 2025, 17(16):2206（开放获取）: <a href="https://www.mdpi.com/2073-4360/17/16/2206" target="_blank" rel="noopener">Underfill 可靠性综述</a></li>
+    <li id="s13">[S13] Springer 2025: <a href="https://link.springer.com/article/10.1007/s00170-025-17196-x" target="_blank" rel="noopener">Epoxy molding compound encapsulation process in IC packaging: a review</a></li>
+    <li id="s19">[S19] 专利 US20150108642: <a href="https://patents.google.com/patent/US20150108642" target="_blank" rel="noopener">Structure to prevent solder extrusion</a></li>
+    <li id="s20">[S20] MDPI: <a href="https://www.mdpi.com/2673-4117/6/12/373" target="_blank" rel="noopener">Thermal Management Challenges in 2.5D and 3D Chiplet Integration: A Review</a></li>
+    <li id="s10h">[S10h] IEEE: <a href="https://ieeexplore.ieee.org/document/6471193" target="_blank" rel="noopener">Bump and Underfill Effects on Thermal Behaviors of Flip-Chip LED Packages: Measurement and Modeling</a></li>
+  </ul>
+
+  <h2 id="sec8">8. 存疑与待核实</h2>
+  <ol>
+    <li><strong>具体数值未回填</strong>：各文献中“间隙高度临界值、填料粒径上限、die shift 预补偿量”等定量结论需读全文补充，本文档先保留方向性结论。</li>
+    <li><strong>部分 IEEE 条目年份/会议名</strong>：以 IEEE Xplore 页面为准。</li>
+    <li><span class="doubt">【存疑】</span><strong>模腔排气/vent 的定量设计准则</strong>：目前只有工艺开发类文献的定性描述 <a href="#s15">[S15]</a><a href="#s16">[S16]</a>，定量公式待补。</li>
+    <li><span class="doubt">【存疑】</span><strong>焊料挤出的量化规律</strong>：专利与会议文献给出机制，具体压力/节距阈值需仿真与实验核实 <a href="#s4">[S4]</a><a href="#s19">[S19]</a>。</li>
+    <li><strong>参数敏感性排序</strong>：尚无直接文献给出“对神经网络精度最敏感的前几个参数”，建议用 CFD/FEM 扫描（gap、bump 节距、die/模帽厚度、填料含量）自测后确定输入取舍。</li>
+  </ol>
+
+  <hr>
+  <blockquote>
+    <p>来源与完整出处见正文内链接与知识库 <code>01_前沿文献/00_重点文献索引.md</code>；无法核实的内容均已标注<span class="doubt">【存疑】</span>。</p>
+  </blockquote>
+</main>
+
+<footer>
+  <p><a href="../index.html">← 返回目录页</a> ｜ 项目学习笔记 · 网页版</p>
+</footer>
+
+</body>
+</html>
