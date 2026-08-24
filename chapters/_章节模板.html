@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>章节模板 · 项目学习笔记</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <span class="brand">📚 项目学习笔记</span>
+    <span class="sep">/</span>
+    <a href="../index.html">目录</a>
+    <span class="sep">/</span>
+    <span>章节名</span>
+  </div>
+</header>
+
+<main>
+  <!-- ① 主标题 -->
+  <h1>章节标题（例：03 · TSV 中介层与 2.5D/3D 封装基础）</h1>
+
+  <!-- ② 元信息块（来源说明，可删改） -->
+  <div class="meta">
+    <p>来源笔记：<code>相对路径/文件名.md</code> ｜ 更新时间：YYYY-MM-DD ｜ 说明：…</p>
+  </div>
+
+  <!-- ③ 页内目录：把下面每个 li 的 href 改成正文中对应 h2 的 id -->
+  <nav class="toc">
+    <div class="toc-title">本页目录</div>
+    <ol>
+      <li><a href="#sec1">第 1 节</a></li>
+      <li><a href="#sec2">第 2 节</a></li>
+    </ol>
+  </nav>
+
+  <!-- ④ 正文：每节用 <h2 id="secX"> 起头，内容自由组合下面的元素 -->
+  <h2 id="sec1">第 1 节</h2>
+  <p>正文段落。<strong>加粗</strong>、<a href="https://example.com" target="_blank" rel="noopener">可点击链接</a>。</p>
+
+  <h3>小标题</h3>
+  <ul>
+    <li>列表项</li>
+  </ul>
+
+  <!-- 表格：必须包在 .table-wrap 里 -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>列1</th><th>列2</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>a</td><td>b</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 引用/提示块 -->
+  <blockquote>
+    <p>提示、总结、注意等。</p>
+  </blockquote>
+
+  <!-- 存疑标注 -->
+  <p>某数值<span class="doubt">【存疑】</span>未经一手核实。</p>
+
+  <h2 id="sec2">第 2 节</h2>
+  <p>…</p>
+
+  <!-- ⑤ 分隔线 + 页脚说明 -->
+  <hr>
+  <blockquote>
+    <p>来源与完整出处见正文内链接；无法核实的内容均已标注<span class="doubt">【存疑】</span>。</p>
+  </blockquote>
+</main>
+
+<footer>
+  <p><a href="../index.html">← 返回目录页</a> ｜ 项目学习笔记 · 网页版</p>
+</footer>
+
+</body>
+</html>

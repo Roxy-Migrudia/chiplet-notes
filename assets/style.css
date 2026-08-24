@@ -1,0 +1,264 @@
+/* ============================================================
+   项目学习笔记 · 网页版 共享样式
+   用法：所有章节页 <link rel="stylesheet" href="../assets/style.css">
+   说明：本文件是设计系统，新增章节页时不要改动此处；
+        如需全局调整（配色/字体），改这里即可全站生效。
+   ============================================================ */
+
+:root {
+  --bg: #f7f6f3;
+  --surface: #ffffff;
+  --ink: #1f2430;
+  --ink-soft: #5b6472;
+  --accent: #0b6bcb;
+  --accent-strong: #0a4d94;
+  --accent-bg: #eaf3fc;
+  --line: #e3e1dc;
+  --callout-bg: #fff8e6;
+  --callout-line: #e0b84e;
+  --doubt-bg: #fdeeee;
+  --doubt-line: #d97777;
+  --ok-bg: #eafaf1;
+  --ok-line: #3fa366;
+  --code-bg: #f1f0ee;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(31, 36, 48, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  line-height: 1.75;
+  font-size: 16px;
+}
+
+/* ---------- 顶栏 ---------- */
+.site-header {
+  background: var(--ink);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+.site-header .inner {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.site-header a {
+  color: #cdd9e6;
+  text-decoration: none;
+  font-size: 14px;
+}
+.site-header a:hover { color: #fff; text-decoration: underline; }
+.site-header .brand { font-weight: 700; color: #fff; font-size: 15px; }
+.site-header .sep { color: #5b6472; }
+
+/* ---------- 主体 ---------- */
+main {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+h1 {
+  font-size: 1.9em;
+  margin: 0.4em 0 0.2em;
+  line-height: 1.35;
+}
+h2 {
+  font-size: 1.35em;
+  margin: 2em 0 0.6em;
+  padding-bottom: 0.35em;
+  border-bottom: 2px solid var(--line);
+  scroll-margin-top: 70px;
+}
+h3 { font-size: 1.12em; margin: 1.6em 0 0.5em; }
+h4 { font-size: 1em; margin: 1.2em 0 0.4em; }
+
+p { margin: 0.6em 0; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+a:visited { color: var(--accent-strong); }
+
+/* 外链小图标提示（章节页用 class="ext" 或普通链接均可） */
+a[target="_blank"]::after {
+  content: " ↗";
+  font-size: 0.85em;
+  opacity: 0.6;
+}
+
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.3em 0; }
+
+strong { color: var(--ink); }
+
+code {
+  background: var(--code-bg);
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+  font-family: Consolas, "SF Mono", Menlo, monospace;
+  font-size: 0.92em;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 2.4em 0;
+}
+
+/* ---------- 元信息/说明块 ---------- */
+.meta {
+  background: var(--accent-bg);
+  border-left: 4px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 10px 16px;
+  margin: 1em 0 1.6em;
+  font-size: 0.95em;
+  color: var(--ink-soft);
+}
+
+/* ---------- 引用块（callout） ---------- */
+blockquote {
+  margin: 1em 0;
+  padding: 10px 16px;
+  background: var(--callout-bg);
+  border-left: 4px solid var(--callout-line);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: #4a4432;
+}
+blockquote p { margin: 0.3em 0; }
+
+/* ---------- 存疑标记 ---------- */
+.doubt {
+  background: var(--doubt-bg);
+  border: 1px solid var(--doubt-line);
+  color: #a12c2c;
+  border-radius: 5px;
+  padding: 0 0.35em;
+  font-size: 0.88em;
+  white-space: nowrap;
+}
+.ok {
+  background: var(--ok-bg);
+  border: 1px solid var(--ok-line);
+  color: #1d6b3c;
+  border-radius: 5px;
+  padding: 0 0.35em;
+  font-size: 0.88em;
+  white-space: nowrap;
+}
+
+/* ---------- 表格 ---------- */
+.table-wrap {
+  overflow-x: auto;
+  margin: 1.1em 0;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  font-size: 0.94em;
+  min-width: 520px;
+}
+th, td {
+  border: 1px solid var(--line);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: var(--ink);
+  color: #fff;
+  font-weight: 600;
+  white-space: nowrap;
+}
+tbody tr:nth-child(even) { background: #f4f5f7; }
+tbody tr:hover { background: var(--accent-bg); }
+
+/* ---------- 页内目录（TOC） ---------- */
+.toc {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 20px;
+  margin: 1.2em 0 2em;
+  box-shadow: var(--shadow);
+  font-size: 0.95em;
+}
+.toc .toc-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--ink-soft);
+  font-size: 0.9em;
+  letter-spacing: 0.05em;
+}
+.toc ol { margin: 0; padding-left: 1.4em; columns: 1; }
+.toc li { margin: 0.2em 0; }
+
+/* ---------- 卡片（首页章节列表用） ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin: 12px 0;
+  box-shadow: var(--shadow);
+  display: block;
+  color: var(--ink);
+  text-decoration: none;
+}
+.card:hover { border-left-color: var(--accent-strong); background: #fbfdff; }
+.card h3 { margin: 0 0 4px; font-size: 1.05em; }
+.card p { margin: 2px 0; color: var(--ink-soft); font-size: 0.92em; }
+.card .tag {
+  display: inline-block;
+  font-size: 0.78em;
+  border-radius: 99px;
+  padding: 1px 10px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.tag.done { background: var(--ok-bg); color: #1d6b3c; border: 1px solid var(--ok-line); }
+.tag.wait { background: var(--callout-bg); color: #7a5b12; border: 1px solid var(--callout-line); }
+
+/* ---------- 页脚 ---------- */
+footer {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 18px 20px 40px;
+  color: var(--ink-soft);
+  font-size: 0.88em;
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- 打印 ---------- */
+@media print {
+  .site-header, .toc, footer { display: none; }
+  body { background: #fff; }
+  a { color: var(--ink); }
+}
+
+/* ---------- 小屏 ---------- */
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  h1 { font-size: 1.5em; }
+  main { padding: 16px 14px 40px; }
+  th, td { padding: 6px 8px; }
+}

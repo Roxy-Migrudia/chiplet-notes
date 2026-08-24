@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目学习笔记 · 网页版</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <span class="brand">📚 项目学习笔记</span>
+    <span class="sep">/</span>
+    <a href="index.html">目录</a>
+  </div>
+</header>
+
+<main>
+  <h1>项目学习笔记 · 网页版</h1>
+  <div class="meta">
+    <p>这是把调研笔记转成的<b>可点击网页版</b>：论文/资料链接可直接点击（新标签页打开），表格已排版，存疑内容有标记。
+    双击本文件即可打开，无需联网服务器。内容来源与详细出处见各章节页底部及 <code>知识库/01_前沿文献/00_重点文献索引.md</code>。</p>
+  </div>
+
+  <h2 id="chapters">📑 章节列表</h2>
+
+  <a class="card" href="chapters/01_铜触点工艺.html">
+    <h3>01 · 铜触点工艺：铜柱与混合键合 <span class="tag done">已发布</span></h3>
+    <p>铜柱凸点结构与工艺流程 · 混合键合原理与节距路线图 · 与锡微凸点的六维对比表 · 可靠性难点与良率建模</p>
+    <p>来源笔记：<code>WEEK 1/02_学习笔记/01_铜触点工艺_铜柱与混合键合.md</code></p>
+  </a>
+
+  <a class="card" href="chapters/02_封装填充工艺.html">
+    <h3>02 · 封装填充工艺：underfill 与塑封 <span class="tag done">已发布</span></h3>
+    <p>为什么需要填充 · CUF/NFU/MUF 三种底部填充对比 · 塑封(EMC)工艺 · 应力-热-缺陷因果链 · 检测方法与技术挑战</p>
+    <p>来源笔记：<code>WEEK 1/02_学习笔记/02_封装填充工艺_underfill与塑封.md</code></p>
+  </a>
+
+  <a class="card" href="#">
+    <h3>03 · TSV 中介层与 2.5D/3D 封装基础 <span class="tag wait">预留</span></h3>
+    <p>术语表 · TSV 结构 · CoWoS vs EMIB · 中介层建模要点（四拆分=全局-局部范式）</p>
+    <p>来源笔记：<code>知识库/04_学习笔记/01_TSV中介层与2.5D-3D封装基础.md</code>（需要时把 md 转成 html 放入 <code>chapters/</code> 即可）</p>
+  </a>
+
+  <a class="card" href="#">
+    <h3>04 · 物理神经网络替代 FEM 前沿综述 <span class="tag wait">预留</span></h3>
+    <p>PINN 基础与局限 · 神经算子(DeepONet/FNO) · 封装 AI 仿真已发表工作 · 投稿地图与开源工具</p>
+    <p>来源笔记：<code>知识库/04_学习笔记/02_物理神经网络替代FEM_前沿综述.md</code></p>
+  </a>
+
+  <a class="card" href="chapters/05_互连仿真关键几何参数.html">
+    <h3>05 · 互连仿真的关键几何参数 <span class="tag done">已发布</span></h3>
+    <p>哪些结构尺寸决定电流密度/温度/应力分布 · bump/铜柱/TSV/混合键合参数速查表 · 与神经网络建模输入的对应 · 全部文献可点击</p>
+    <p>来源：联网文献检索 + 知识库重点文献索引（2026-08-24 文献初稿，编入 PPT 前请审阅）</p>
+  </a>
+
+  <a class="card" href="#">
+    <h3>06+ · 新章节（按需添加） <span class="tag wait">预留</span></h3>
+    <p>复制 <code>chapters/_章节模板.html</code>，改名后编辑内容，再在本页"章节列表"里加一张卡片即可。</p>
+  </a>
+
+  <h2 id="howto">🛠 如何添加新章节（可拓展）</h2>
+  <ol>
+    <li>复制模板：把 <code>chapters/_章节模板.html</code> 复制一份，重命名为 <code>chapters/03_你的章节名.html</code>。</li>
+    <li>编辑正文：在 <code>&lt;main&gt;</code> 内按模板的注释位置替换标题、目录、正文内容；链接一律写成
+      <code>&lt;a href="https://…" target="_blank" rel="noopener"&gt;链接文字&lt;/a&gt;</code>。</li>
+    <li>表格写法：<code>&lt;div class="table-wrap"&gt;&lt;table&gt;…&lt;/table&gt;&lt;/div&gt;</code>（样式自动生效）。</li>
+    <li>存疑标注：文中【存疑】处写 <code>&lt;span class="doubt"&gt;【存疑】&lt;/span&gt;</code>。</li>
+    <li>登记入口：在本页"章节列表"复制一张 <code>.card</code> 卡片，改标题/链接/描述。</li>
+    <li>改样式：全站配色/字体都在 <code>assets/style.css</code>，改一处全站生效（一般不需要动）。</li>
+  </ol>
+  <blockquote>
+    <p>💡 也可以直接对我说"把 XXX 笔记加进网页版"，我会按同样的格式帮你转换并登记。</p>
+  </blockquote>
+
+  <h2 id="links">🔗 相关入口</h2>
+  <ul>
+    <li>知识库索引：<a href="../知识库/README.md" target="_blank" rel="noopener">知识库/README.md</a></li>
+    <li>重点文献索引：<a href="../知识库/01_前沿文献/00_重点文献索引.md" target="_blank" rel="noopener">知识库/01_前沿文献/00_重点文献索引.md</a></li>
+    <li>项目概览：<a href="../项目概览.md" target="_blank" rel="noopener">项目概览.md</a></li>
+    <li>网页版说明与扩展规范：<a href="README.md" target="_blank" rel="noopener">README.md</a></li>
+  </ul>
+</main>
+
+<footer>
+  <p>项目学习笔记 · 网页版｜由 WEEK 1 调研笔记转换生成（2026-08-18）｜所有外部链接均来自调研笔记，可点击核验。</p>
+</footer>
+
+</body>
+</html>

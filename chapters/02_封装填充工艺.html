@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>封装填充工艺 · 项目学习笔记</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <span class="brand">📚 项目学习笔记</span>
+    <span class="sep">/</span>
+    <a href="../index.html">目录</a>
+    <span class="sep">/</span>
+    <span>封装填充工艺</span>
+  </div>
+</header>
+
+<main>
+  <!-- ① 主标题（忠实保留原文标题） -->
+  <h1>Chiplet 2.5D 封装：底部填充与塑封工艺、应力/热/缺陷分析 — 调研笔记</h1>
+
+  <!-- ② 元信息块 -->
+  <div class="meta">
+    <p>来源笔记：<code>WEEK 1/02_学习笔记/02_封装填充工艺_underfill与塑封.md</code> ｜ 用途：WEEK 1 任务②调研：chiplet 封装填充流程与应力/热/缺陷分析 ｜ 说明：所有关键信息均标注来源链接，未核实内容标<span class="doubt">【存疑】</span></p>
+  </div>
+
+  <!-- ③ 页内目录 -->
+  <nav class="toc">
+    <div class="toc-title">本页目录</div>
+    <ol>
+      <li><a href="#sec1">0. 为什么需要"外部材料填充"？（30 秒背景）</a></li>
+      <li><a href="#sec2">1. 底部填充（Underfill）工艺</a></li>
+      <li><a href="#sec3">2. 塑封 / 模塑工艺（Molding / EMC）</a></li>
+      <li><a href="#sec4">3. 应力与热问题</a></li>
+      <li><a href="#sec5">4. 缺陷机制与检测方法</a></li>
+      <li><a href="#sec6">5. 当前工艺存在的技术挑战（按 chiplet 场景排序）</a></li>
+      <li><a href="#sec7">6. 权威来源链接</a></li>
+      <li><a href="#sec8">7. 给新手的一句话总结（材料 → 应力 → 缺陷 的因果链）</a></li>
+      <li><a href="#sec9">8. 备注与存疑清单</a></li>
+    </ol>
+  </nav>
+
+  <!-- ④ 正文 -->
+  <!-- 原文开头 3 条引言（面向对象/调研方式/建议配套阅读） -->
+  <blockquote>
+    <p>面向对象：电子信息工程大三新生（本周任务 2：了解 chiplet 工艺封装后的外部材料填充基础流程、过程中可能的应力/热力/缺陷分析及当前技术问题）。</p>
+    <p>调研方式：基于 web_search 的真实来源，每条关键信息都对应文末/文内链接；无法从来源核实的内容标注<span class="doubt">【存疑】</span>。</p>
+    <p>建议配套阅读：Intel EMIB 中文科普（见 §6），先建立"硅桥连接"的整体画面，再看本笔记的填充/塑封环节。</p>
+  </blockquote>
+
+  <hr>
+
+  <h2 id="sec1">0. 为什么需要"外部材料填充"？（30 秒背景）</h2>
+
+  <!-- 第 0 节作为背景小结，用 blockquote 收尾呈现 -->
+  <blockquote>
+    <p>Chiplet 2.5D 封装（如硅中介层 interposer、硅桥 silicon bridge，如 Intel EMIB / TSMC CoWoS）中，多个裸芯片（die）通过微凸点（micro-bump / C4 bump）倒装焊（flip-chip）在互连载体上。芯片与载体之间的狭小间隙里，焊点承担电气与机械连接，但<strong>单个焊点很脆弱</strong>：</p>
+    <ul>
+      <li>没有填充材料时，热循环（thermal cycling）中焊点单独承受全部 CTE 失配应变，极易疲劳开裂；</li>
+      <li>外界湿气、污染也会侵蚀焊点界面。</li>
+    </ul>
+    <p>因此封装完成后需要把间隙填满——这就是<strong>底部填充（underfill）</strong>；再整体用<strong>环氧塑封料（EMC, Epoxy Molding Compound）</strong>包覆——这就是<strong>塑封/模塑（molding）</strong>。两者共同把"焊点级"的受力分散到整个封装体，并隔绝环境。</p>
+    <p>参考：<a href="https://www.nordson.com/en/divisions/electronics-solutions/your-process/fluid-types/underfill" target="_blank" rel="noopener">Nordson Underfill 工艺说明</a>、<a href="https://www.mdpi.com/2073-4360/17/16/2206" target="_blank" rel="noopener">MDPI Polymers 2025《Underfill: A Review of Reliability Improvement Methods in Electronics Production》</a></p>
+  </blockquote>
+
+  <hr>
+
+  <h2 id="sec2">1. 底部填充（Underfill）工艺</h2>
+
+  <h3>1.1 毛细底部填充（Capillary Underfill, CUF）— 最经典、最主流</h3>
+
+  <p><strong>流程</strong>：① 芯片倒装焊接完成（贴片 + 回流焊 solder reflow）→ ② 沿芯片边缘点胶（dispense），液态底部填充材料依靠<strong>毛细力（capillary force）</strong>自动流入芯片与基板/中介层之间的窄缝 → ③ 加热固化（cure），形成致密填充层。</p>
+
+  <p><strong>特点与适用</strong>：</p>
+  <ul>
+    <li>工艺成熟、设备简单（点胶机即可）、填充方向可控，是传统 flip-chip（CSP/BGA 芯片）的标准方案；</li>
+    <li>填充速度与<strong>凸点间距（bump pitch）、芯片尺寸</strong>强相关：缝隙越窄、面积越大，毛细流动越慢，填充时间越长、越容易产生<strong>流动空洞（flow void）</strong>；</li>
+    <li>对 chiplet 2.5D 的大面积、细间距（如 &lt;40 μm）场景越来越吃力，需要流动仿真与凸点布局优化来辅助设计。</li>
+  </ul>
+  <p>参考：<a href="https://www.nordson.com/en/divisions/electronics-solutions/your-process/fluid-types/underfill" target="_blank" rel="noopener">Nordson Underfill</a>、<a href="https://ieeexplore.ieee.org/abstract/document/10457663" target="_blank" rel="noopener">IEEE《Capillary Underfill Flow Simulation and Experimental Study for Solder Mask Opening and Trace Distribution in Bump Layout Design》</a>、<a href="https://www.mdpi.com/2073-4360/17/16/2206" target="_blank" rel="noopener">MDPI Underfill 综述</a>（其中提到压力辅助填充等新手段正是为了克服毛细流动慢的瓶颈）</p>
+
+  <h3>1.2 无流动底部填充（No-Flow Underfill, NFU）— 一步完成贴片+填充</h3>
+
+  <p><strong>流程</strong>：① 先在基板/载体上<strong>预涂布</strong>底部填充材料（而非等贴片后再填充）→ ② 直接放置芯片 → ③ 回流焊：焊点熔化连接的同时，底部填充材料同步完成固化 → 一步完成互连 + 填充。</p>
+
+  <p><strong>特点与适用</strong>：</p>
+  <ul>
+    <li>省去了独立的毛细填充工序，工艺节拍快；适合细间距/大芯片，因为不需要等待毛细流动；</li>
+    <li>难点：材料必须兼具助焊（flux）功能（否则焊点无法润湿）、固化温度窗口要与焊料回流匹配；填料颗粒可能被夹在焊点之间造成开路风险（对填料粒径有要求）；</li>
+    <li>整体上在量产中不如 CUF 普及，多用于特定器件/研究场景。</li>
+  </ul>
+  <p>参考：<a href="https://repository.gatech.edu/server/api/core/bitstreams/fbf4c913-329e-4d03-8abb-9497057418d9/content" target="_blank" rel="noopener">Georgia Tech 论文示意图《Figure 2-3 Schematic of flip chip assembly process (conventional vs hybrid no-flow assembly)》</a>、<a href="https://patents.google.com/patent/US7498678B2/en" target="_blank" rel="noopener">专利 US7498678B2《Electronic assemblies and systems with filled no-flow underfill》</a></p>
+
+  <h3>1.3 模塑底部填充（Molded Underfill, MUF）— chiplet/扇出封装的主流趋势</h3>
+
+  <p><strong>流程</strong>：不单独点胶，而是用<strong>液态模塑材料（liquid molding compound / liquid MUF）</strong>通过<strong>压缩模塑（compression molding）</strong>或转移模塑，在<strong>一个工序里同时完成"底部填充 + 整包塑封"</strong>——材料既钻进芯片下方窄缝（underfill 作用），又包覆整个封装体（molding 作用）。</p>
+
+  <p><strong>特点与适用</strong>：</p>
+  <ul>
+    <li>工序合并、产能高，特别适合<strong>多芯片、大面积</strong>的 2.5D/SiP/扇出晶圆级封装（FOWLP）；</li>
+    <li>挑战：窄缝（尤其 20 μm 以下细间距）内填充难度大、流动前沿容易裹入空气形成空洞（void）、模塑过程中的 die shift 等（见 §3.3、§4.1）；</li>
+    <li>材料配方需要权衡：低翘曲（高填料、低 CTE）vs 良好流动/窄缝填充能力（低黏度、细填料）。</li>
+  </ul>
+  <p>参考：<a href="https://industrial.panasonic.com/ww/electronic-materials/products/liquid-muf" target="_blank" rel="noopener">Panasonic 液态 MUF 产品页（Liquid Molded Underfill for 2.5D, SiP）</a>、<a href="https://ieeexplore.ieee.org/document/10565201" target="_blank" rel="noopener">IEEE ECTC《Development of two different molding methods in 2.5D package with 20 μm or less fine bump pitch CoW structure》</a>、<a href="https://ieeexplore.ieee.org/document/10195461" target="_blank" rel="noopener">IEEE《Liquid Compression Mold Underfill Optimization with Low Warpage and Narrow Gap Flow》</a>、<a href="https://ieeexplore.ieee.org/document/8913990" target="_blank" rel="noopener">IEEE《Ultra-Low Warpage and Excellent Filling Ability Liquid MUF for Advanced Fan-Out Wafer Level Package》</a>、<a href="https://imapsource.org/article/129614-low-warpage-liquid-compression-molded-underfill-for-wafer-level-packaging.pdf" target="_blank" rel="noopener">IMAPS《Low Warpage Liquid Compression Molded Underfill for Wafer Level Packaging》</a></p>
+
+  <h3>1.4 三种方式速览</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>方式</th><th>填充时机</th><th>与焊接工序关系</th><th>主要优点</th><th>主要缺点</th><th>适用场景</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>CUF 毛细底部填充</td><td>焊接后点胶</td><td>独立工序</td><td>成熟、可控、可靠</td><td>细间距/大面积填充慢、易流动空洞</td><td>传统 flip-chip、中小尺寸</td></tr>
+        <tr><td>NFU 无流动底部填充</td><td>焊接前预涂布</td><td>与回流焊合并一步</td><td>省工序、快</td><td>材料要求高、填料夹焊点风险</td><td>特定细间距器件</td></tr>
+        <tr><td>MUF 模塑底部填充</td><td>与塑封合并一步</td><td>与塑封合并</td><td>产能高、适合多芯片大面积</td><td>窄缝填充难、易裹气、die shift</td><td>2.5D / SiP / FOWLP（chiplet 主流）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <h2 id="sec3">2. 塑封 / 模塑工艺（Molding / EMC）</h2>
+
+  <p><strong>EMC 是什么</strong>：环氧塑封料 = 环氧树脂 + 高比例二氧化硅填料（silica filler）+ 固化剂 + 偶联剂/阻燃剂等。填料含量直接决定 CTE、模量、翘曲与流动性能（填料越多 CTE 越低但越难流动）。</p>
+  <p>参考：<a href="https://link.springer.com/article/10.1007/s00170-025-17196-x" target="_blank" rel="noopener">Springer《Epoxy molding compound encapsulation process in IC packaging: a review at wafer and component levels》（Int J Adv Manuf Technol, 2025）</a></p>
+
+  <p><strong>两种主流模塑方式</strong>：</p>
+
+  <ol>
+    <li><strong>转移模塑（Transfer Molding）</strong>——传统方案
+      <ul>
+        <li>把固态 EMC 预成型片在注塑腔中加热熔融，用柱塞<strong>压入</strong>装有器件（如引脚框架上的芯片）的模腔，保压固化。</li>
+        <li>经典用于 QFP/QFN/BGA 等封装，对大面积晶圆级/2.5D 场景逐渐力不从心。</li>
+      </ul>
+      <p>参考：同上 Springer 综述（分 wafer 级与 component 级两部分综述了工艺）</p>
+    </li>
+    <li><strong>压缩模塑（Compression Molding）</strong>——晶圆级/面板级/2.5D 的主流
+      <ul>
+        <li>流程：① 芯片先贴装/临时键合在载板（carrier/wafer）上 → ② 在模腔中<strong>分配液态 EMC</strong>（dispense 量按体积控制）→ ③ 上下模闭合，<strong>以受控压力把材料压开</strong>填满芯片间隙与表面 → ④ 加热固化 → ⑤ 脱模/研磨减薄（backgrinding）→ 后续去载板、做 RDL 或再组装。</li>
+        <li>对芯片高度差异（heterogeneous 多芯片）有更好适应性，能一次覆盖大面积，是 FOWLP、面板级封装、2.5D 模塑填充（MUF）的核心设备/工艺。</li>
+      </ul>
+      <p>参考：<a href="https://ieeexplore.ieee.org/document/9159430" target="_blank" rel="noopener">IEEE《Development of compression molding process for Fan-Out wafer level packaging》</a>、<a href="https://ieeexplore.ieee.org/document/9159252" target="_blank" rel="noopener">IEEE《New Molding Technology Enabling Advanced Packaging Technology》</a>、<a href="https://ieeexplore.ieee.org/document/10565201" target="_blank" rel="noopener">IEEE ECTC 10565201（2.5D CoW 结构两种模塑方法对比）</a></p>
+    </li>
+  </ol>
+
+  <hr>
+
+  <h2 id="sec4">3. 应力与热问题</h2>
+
+  <h3>3.1 CTE 失配与热应力（根源问题）</h3>
+
+  <ul>
+    <li>封装内各材料<strong>热膨胀系数（CTE, Coefficient of Thermal Expansion）差异巨大</strong>：硅芯片约 2.6–3 ppm/°C，有机基板约 12–18 ppm/°C，EMC/底部填充约 7–12 ppm/°C（靠填料调节），焊料在 20+ ppm/°C 量级。</li>
+    <li>从<strong>固化/回流高温（150–260 °C）冷却到室温</strong>的过程中，各层收缩量不同，界面/焊点处产生<strong>热应力（thermal stress）与残余应力</strong>。这是几乎所有封装可靠性问题的"源头"。</li>
+  </ul>
+  <p>参考：<a href="https://ieeexplore.ieee.org/document/10818872" target="_blank" rel="noopener">IEEE《Warpage and Stress Analysis in Molded 2.5D Package Chiplet Integration》</a>、<a href="https://www.mdpi.com/2673-4117/6/12/373" target="_blank" rel="noopener">MDPI《Thermal Management Challenges in 2.5D and 3D Chiplet Integration: A Review》</a>、<a href="https://www.semiconductor-digest.com/materials-driven-solutions-for-2-5d-3d-and-fan-out-wlp/" target="_blank" rel="noopener">Semiconductor Digest《Materials-Driven Solutions for 2.5D/3D and Fan-Out WLP》</a></p>
+
+  <h3>3.2 翘曲（Warpage）</h3>
+
+  <ul>
+    <li>冷却收缩不均 → 封装体（尤其大面积 2.5D 载板/中介层/模塑层叠结构）发生<strong>碗状/弓形翘曲</strong>。</li>
+    <li>危害：贴装/植球/贴片对准偏差、与主板焊接（board attach）空洞与虚焊、良率下降；翘曲过大甚至压裂芯片。</li>
+    <li>对策方向：调节 EMC/underfill 的 CTE 与模量、对称叠层设计、分步固化、工艺顺序优化、仿真（FEM）预测与补偿。</li>
+  </ul>
+  <p>参考：<a href="https://ieeexplore.ieee.org/document/10818872" target="_blank" rel="noopener">IEEE 10818872 翘曲与应力分析（molded 2.5D chiplet）</a>、<a href="https://www.emerald.com/ssmt/article-abstract/37/3/205/1264332/" target="_blank" rel="noopener">Emerald《Warpage optimization of memory-computing integrated chiplets with 2.5D packaging》</a>、<a href="https://meridian.allenpress.com/imaps-conferences/article/2012/DPC/000347/26204/Assembly-Challenges-for-Large-Interposer-2-5D-TSV" target="_blank" rel="noopener">IMAPS《Assembly Challenges for Large Interposer 2.5D TSV Products》</a></p>
+
+  <h3>3.3 Die Shift（芯片偏移）</h3>
+
+  <ul>
+    <li>定义：模塑（尤其<strong>芯片先置（chip-first）</strong>的 FOWLP/2.5D 流程）过程中，液态塑封料的<strong>流动拖曳力（flow drag force）</strong>推动尚未固定的芯片，或冷却时<strong>载板与芯片 CTE 失配</strong>引起位置偏移，导致后续光刻/重布线（RDL）对位不准甚至短路/断路。</li>
+    <li>对策：模塑前对芯片位置<strong>预补偿（pre-shift compensation）</strong>、选择 CTE 匹配的载板/临时键合方案、优化流动方向与注塑参数、仿真预测偏移量。</li>
+  </ul>
+  <p>参考：<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6190190/" target="_blank" rel="noopener">Micromachines 2018（PMC 开放获取）《Compensation Method for Die Shift Caused by Flow Drag Force in Wafer-Level Molding Process》</a>、<a href="https://ieeexplore.ieee.org/abstract/document/8914144" target="_blank" rel="noopener">IEEE IWLPC《Novel Temporary Bonding and Debonding Solutions ... Quasi-Zero Die Shift》</a></p>
+
+  <h3>3.4 热机械疲劳（Thermomechanical Fatigue）</h3>
+
+  <ul>
+    <li>实际产品要过<strong>温度循环（thermal cycling, TC）</strong>、功率循环（power cycling）等可靠性测试。CTE 失配的反复作用使<strong>焊点（C4 bump / micro-bump / BGA）发生蠕变-疲劳累积损伤</strong>，最终开裂失效。</li>
+    <li><strong>底部填充的作用</strong>：把焊点承受的剪切应变分摊到整个填充层，显著延长焊点寿命——这也是 underfill 最初被发明的理由。underfill 的<strong>粘弹性（viscoelastic）行为、玻璃化转变温度（Tg）</strong>对疲劳寿命模拟与实测影响很大。</li>
+    <li>2.5D 封装的仿真常用"多物理场耦合 FEA"评估（热-力-电耦合）。</li>
+  </ul>
+  <p>参考：<a href="https://ieeexplore.ieee.org/document/11496578" target="_blank" rel="noopener">IEEE《Thermo-mechanical reliability assessment of advanced 3D and 2.5D heterogeneous packages using multi-physics simulation》</a>、<a href="https://chiplet-marketplace.com/library/article/thermo-mechanical-reliability-evaluation-and-comparative-fatigue-assessment-of-2-5d-chiplet-packages-with-viscoelastic-c4-underfill" target="_blank" rel="noopener">chiplet-marketplace 收录《Thermo-mechanical reliability evaluation and comparative fatigue assessment of 2.5D chiplet packages with viscoelastic C4 underfill》</a>、<a href="https://www.sciencedirect.com/science/article/abs/pii/S0026271424002105" target="_blank" rel="noopener">ScienceDirect《Finite element analysis of 2.5D packaging processes based on multi-physics field coupling》</a></p>
+
+  <hr>
+
+  <h2 id="sec5">4. 缺陷机制与检测方法</h2>
+
+  <h3>4.1 空洞（Void）</h3>
+
+  <ul>
+    <li><strong>成因</strong>：毛细/模塑流动前沿形状不佳导致的<strong>空气裹入（air entrapment）</strong>、流动标记（flow mark）、填料团聚/沉降、材料放气（outgassing）、焊点密集区流速不均等。</li>
+    <li><strong>危害</strong>：空洞处无支撑 → 局部应力集中；空洞连通水汽通道 → 电化学迁移与分层风险。</li>
+    <li>MUF 场景下空洞风险是研究热点，已有专门的两相可压缩流仿真方法（porous media, two-phase, compressible flow）用于预测 FC-POP MUF 的空洞风险。</li>
+  </ul>
+  <p>参考：<a href="https://ieeexplore.ieee.org/document/9056458" target="_blank" rel="noopener">IEEE《Parametric Study on the Void Risk in FC-POP Molded Underfill Process ...》</a>、<a href="https://www.mdpi.com/2073-4360/17/16/2206" target="_blank" rel="noopener">MDPI Underfill 综述</a>、<a href="https://patents.google.com/patent/US12469822" target="_blank" rel="noopener">专利 US12469822（MUF 层内 void 相关）</a></p>
+
+  <h3>4.2 分层（Delamination）</h3>
+
+  <ul>
+    <li><strong>定义</strong>：界面粘接失效——常见于<strong>芯片/底部填充界面、底部填充/基板界面、塑封料/芯片或引线界面</strong>；湿热（吸湿 + 高温）会显著降低界面粘接力。</li>
+    <li><strong>危害</strong>：界面分离后应力无法传递、水汽通道形成，加速失效；是封装可靠性测试（如 MSL 湿度等级测试、TC）中最常见的失效模式之一。</li>
+  </ul>
+  <p>参考：<a href="https://www.scientech.com.tw/zh-hant/PressCenter/Technology/Newsletter/TechNews-278" target="_blank" rel="noopener">台灣科學儀器 Scientech《先進封裝 Delamination（分層/剝離）檢測全解析》</a>、<a href="https://patents.google.com/patent/US5970319" target="_blank" rel="noopener">专利 US5970319（flip-chip 封装用 C-SAM 检查流程）</a></p>
+
+  <h3>4.3 裂纹（Crack）</h3>
+
+  <ul>
+    <li><strong>芯片裂纹</strong>：翘曲/应力集中导致硅片开裂（die crack）。</li>
+    <li><strong>低 k / 超低 k 介质层裂纹（CPI, Chip-Package Interaction）</strong>：先进制程的脆性低 k（low-k / ultra-low-k, ULK）层与铜互连机械强度低，封装应力（尤其<strong>铜柱/凸点正下方</strong>区域）会把应力传到介质层造成开裂/分层——这是先进节点封装的头号材料问题，需通过底部填充材料低应力配方（低模量、合适 Tg）与凸点几何优化缓解。</li>
+    <li><strong>焊点/塑封料裂纹</strong>：疲劳或过应力导致。</li>
+  </ul>
+  <p>参考：<a href="https://gz.nstl.gov.cn/paper_detail.html?id=e9387faf074801c4f36df4c437f1587f" target="_blank" rel="noopener">NSTL《Thermomechanical stress optimization in flip-chip packages: Impacts of copper pillar geometry on ultra-low-k layer reliability》</a>、<a href="https://patents.google.com/patent/EP1697987A4/en" target="_blank" rel="noopener">专利 EP1697987A4《Electronic packaging materials for use with low-k dielectric-containing semiconductor devices》</a>、<a href="https://repositories.lib.utexas.edu/items/5ae9e6e3-5173-445d-831c-bce54bf63640" target="_blank" rel="noopener">UT Austin《Chip package interaction (CPI) and its impact on the reliability of flip-chip packages》</a></p>
+
+  <h3>4.4 焊料挤出 / 桥接（Solder Extrusion / Squeeze-out / Bridging）</h3>
+
+  <ul>
+    <li>模塑在高温（~175 °C）与压力下进行，若芯片下方焊料（尤其细间距微凸点）在模塑压力下<strong>被挤出间隙</strong>，可能与相邻焊点短接（bridging）——业界专门有"防焊料挤出结构"的专利设计，说明这是真实存在的失效风险。</li>
+    <li>另外模具/塑封料流动也可能推动未凝固焊料造成桥接（与 die shift 同源）。此机制的量化规律建议以仿真/实验文献进一步核实（标注：细节<span class="doubt">【存疑】</span>）。</li>
+  </ul>
+  <p>参考：<a href="https://patents.google.com/patent/US20150108642" target="_blank" rel="noopener">专利 US20150108642《Structure to prevent solder extrusion》</a>、<a href="https://discovery.researcher.life/article/packaging-and-assembly-challenges-for-2-5d-3d-devices/8bdd2ba76ed43e3fbd8565901607ba33" target="_blank" rel="noopener">IMAPS《Packaging and Assembly Challenges for 2.5D/3D Devices》</a>、<a href="https://meridian.allenpress.com/jmep/article-split/12/3/123/36538/" target="_blank" rel="noopener">Allen Press《Challenges of Scalable 2.5D IC Assembly》</a></p>
+
+  <h3>4.5 常用检测方法</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>方法</th><th>原理</th><th>能查什么</th><th>备注</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>C-SAM（C 模式扫描声学显微镜，超声扫描）</strong></td><td>超声波在异质界面反射成像</td><td>空洞、分层、裂纹（内部界面级）</td><td>无损，封装失效分析最常用；对"空气缝隙"（空洞/分层）极灵敏</td></tr>
+        <tr><td><strong>X-ray / 3D CT</strong></td><td>X 射线透射/断层成像</td><td>焊点桥接、焊点/凸点空洞、对齐、bump 形态</td><td>无损，适合金属结构；分层/树脂内部缺陷不敏感</td></tr>
+        <tr><td>破坏性切片（Cross-section）</td><td>物理研磨/切割 + SEM</td><td>微观界面形貌、IMC 层、裂纹细节</td><td>有损，做机理确认</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>参考：<a href="https://www.scientech.com.tw/zh-hant/PressCenter/Technology/Newsletter/TechNews-278" target="_blank" rel="noopener">Scientech《先進封裝 Delamination 檢測全解析》</a>、<a href="https://patents.google.com/patent/US5970319" target="_blank" rel="noopener">US5970319（C-SAM 检查流程）</a>、<a href="https://www.science.gov/topicpages/m/micro+flip-chip+solder" target="_blank" rel="noopener">Science.gov 主题页（C-SAM 与 X-ray 用于 bump/内部检测的汇总）</a></p>
+
+  <hr>
+
+  <h2 id="sec6">5. 当前工艺存在的技术挑战（按 chiplet 场景排序）</h2>
+
+  <ol>
+    <li><strong>大尺寸 chiplet / 大面积中介层的翘曲控制</strong>：面积越大，CTE 失配累积的翘曲越严重，是 2.5D 量产良率的最大敌人之一；需要材料（EMC/underfill 填料配方）与工艺（分步固化、载板选择、顺序）联合优化，并靠 FEM/仿真预测。
+      <p>参考：<a href="https://ieeexplore.ieee.org/document/10818872" target="_blank" rel="noopener">IEEE 10818872</a>、<a href="https://www.emerald.com/ssmt/article-abstract/37/3/205/1264332/" target="_blank" rel="noopener">Emerald 翘曲优化</a>、<a href="https://meridian.allenpress.com/imaps-conferences/article/2012/DPC/000347/26204/Assembly-Challenges-for-Large-Interposer-2-5D-TSV" target="_blank" rel="noopener">IMAPS 大中介层组装挑战</a></p>
+    </li>
+    <li><strong>低 k / ULK 介质层开裂（CPI 问题）</strong>：先进节点芯片机械强度低，封装应力传导到介质层导致开裂/分层；需要低应力底部填充材料 + 凸点/铜柱几何优化 + 应力仿真。
+      <p>参考：<a href="https://gz.nstl.gov.cn/paper_detail.html?id=e9387faf074801c4f36df4c437f1587f" target="_blank" rel="noopener">NSTL 低 k 论文</a>、<a href="https://repositories.lib.utexas.edu/items/5ae9e6e3-5173-445d-831c-bce54bf63640" target="_blank" rel="noopener">UT Austin CPI 论文</a>、<a href="https://patents.google.com/patent/EP1697987A4/en" target="_blank" rel="noopener">EP1697987A4</a></p>
+    </li>
+    <li><strong>填充材料选择权衡（性能三角）</strong>：① 低 CTE 低翘曲 ← 需要高填料含量；② 好流动/窄缝填充/无空洞 ← 需要低黏度、细填料；③ 高 Tg、低模量、良好粘接 ← 配方化学。三者互相打架，是材料与工艺协同设计的核心矛盾。CUF/MUF 都受此约束。
+      <p>参考：<a href="https://link.springer.com/article/10.1007/s00170-025-17196-x" target="_blank" rel="noopener">Springer EMC 综述</a>、<a href="https://www.semiconductor-digest.com/materials-driven-solutions-for-2-5d-3d-and-fan-out-wlp/" target="_blank" rel="noopener">Semiconductor Digest 材料方案文章</a>、<a href="https://ieeexplore.ieee.org/document/10195461" target="_blank" rel="noopener">IEEE 10195461 低翘曲+窄缝填充权衡</a></p>
+    </li>
+    <li><strong>细间距（≤20–40 μm）填充极限</strong>：传统 CUF 毛细流动在 20 μm 级微凸点间距下极慢甚至失效，需要转向 MUF / 压缩模塑 / 压力辅助填充等新工艺；同时细间距下模塑压力与焊料挤出、die shift 风险上升。
+      <p>参考：<a href="https://ieeexplore.ieee.org/document/10565201" target="_blank" rel="noopener">IEEE 10565201（20 μm 以下细间距 CoW 的两种模塑方法）</a>、<a href="https://ieeexplore.ieee.org/document/9056458" target="_blank" rel="noopener">IEEE 9056458（MUF 空洞风险仿真）</a></p>
+    </li>
+    <li><strong>模塑工艺窗口与缺陷的平衡</strong>：模塑温度/压力/保压时间既决定填充质量（无空洞）又影响 die shift、焊料挤出、残余应力；窗口窄，需要工艺仿真（Moldex3D 类）+ 实验 DOE 联合调优。
+      <p>参考：<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6190190/" target="_blank" rel="noopener">Micromachines die shift 补偿</a>、<a href="https://ieeexplore.ieee.org/document/9159430" target="_blank" rel="noopener">IEEE 9159430 压缩模塑开发</a></p>
+    </li>
+  </ol>
+
+  <hr>
+
+  <h2 id="sec7">6. 权威来源链接</h2>
+
+  <h3>论文/会议论文（IEEE ECTC 等 / 期刊 / 开放获取）</h3>
+
+  <ol>
+    <li><a href="https://ieeexplore.ieee.org/document/10818872" target="_blank" rel="noopener">IEEE（ECTC 系）《Warpage and Stress Analysis in Molded 2.5D Package Chiplet Integration》</a> — 模塑 2.5D chiplet 翘曲与应力分析</li>
+    <li><a href="https://ieeexplore.ieee.org/document/10565201" target="_blank" rel="noopener">IEEE（ECTC 2024）《Development of two different molding methods in 2.5D package with 20 μm or less fine bump pitch CoW structure》</a> — 20 μm 级细间距 CoW 的两种模塑方法</li>
+    <li><a href="https://www.mdpi.com/2073-4360/17/16/2206" target="_blank" rel="noopener">MDPI Polymers 2025（开放获取）《Underfill: A Review of Reliability Improvement Methods in Electronics Production》</a> — 底部填充材料/工艺/可靠性综述</li>
+    <li><a href="https://link.springer.com/article/10.1007/s00170-025-17196-x" target="_blank" rel="noopener">Springer《Epoxy molding compound encapsulation process in IC packaging: a review at wafer and component levels》（Int J Adv Manuf Technol, 2025）</a> — EMC 塑封工艺综述（wafer 级与 component 级）</li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6190190/" target="_blank" rel="noopener">Micromachines 2018（PMC 开放获取）《Compensation Method for Die Shift Caused by Flow Drag Force in Wafer-Level Molding Process》</a> — die shift 机理与补偿</li>
+    <li><a href="https://ieeexplore.ieee.org/document/11496578" target="_blank" rel="noopener">IEEE《Thermo-mechanical reliability assessment of advanced 3D and 2.5D heterogeneous packages using multi-physics simulation》</a> — 2.5D/3D 多物理场热机械可靠性</li>
+    <li><a href="https://ieeexplore.ieee.org/document/9159430" target="_blank" rel="noopener">IEEE《Development of compression molding process for Fan-Out wafer level packaging》</a> — FOWLP 压缩模塑工艺开发</li>
+    <li><a href="https://ieeexplore.ieee.org/document/9056458" target="_blank" rel="noopener">IEEE《Parametric Study on the Void Risk in FC-POP Molded Underfill Process ...》</a> — MUF 空洞风险仿真方法</li>
+    <li><a href="https://ieeexplore.ieee.org/document/10195461" target="_blank" rel="noopener">IEEE《Liquid Compression Mold Underfill Optimization with Low Warpage and Narrow Gap Flow》</a> — 液态压缩模塑底部填充的翘曲/窄缝权衡</li>
+  </ol>
+
+  <h3>行业机构/企业页面</h3>
+
+  <ol>
+    <li><a href="https://www.intel.com/content/www/us/en/foundry/packaging.htm" target="_blank" rel="noopener">Intel 先进封装页面（Foundry）</a> + <a href="https://newsroom.intel.com/zh-cn/in-science-education/5%e5%88%86%e9%92%9fin%e7%a7%91%e6%99%ae-%e5%bd%93%e8%8a%af%e7%b2%92%e5%bc%80%e5%a7%8b%e7%bb%84%e5%9b%a2%e4%bd%9c%e6%88%98emib%e6%98%af%e5%a6%82%e4%bd%95%e6%8a%8a%e5%ae%83" target="_blank" rel="noopener">Intel 中文科普：EMIB 如何把芯粒连在一起</a>（硅桥路线，与本项目"硅桥连接"直接相关）</li>
+    <li><a href="https://www.imec-int.com/en/expertise/cmos-advanced/connect/3d-integration" target="_blank" rel="noopener">imec 官方：3D integration（IC stacking to extend scaling）</a> + <a href="https://www.imec-int.com/en/articles/chiplets-piecing-together-next-generation-chips-part-i" target="_blank" rel="noopener">imec 文章《Chiplets: piecing together the next generation of chips》</a></li>
+    <li><a href="https://ase.aseglobal.com/blog/technology/advanced-packaging-for-ai-chiplet-and-cpo/" target="_blank" rel="noopener">ASE（日月光）博客《Advanced Packaging Evolution: Chiplet and Silicon Photonics-CPO》</a> + <a href="https://www.aseglobal.com/press-room/advanced-interconnect-tech-for-chiplets" target="_blank" rel="noopener">ASE 新闻《VIPack™ ... for Chiplets》</a></li>
+    <li><a href="https://amkor.com/blog/revolutionizing-ic-packaging-with-s-swift-technology/" target="_blank" rel="noopener">Amkor 博客《Revolutionizing IC Packaging with S-SWIFT™ Technology》</a> + <a href="https://amkor.com/packaging/laminate/interposer-pop/" target="_blank" rel="noopener">Amkor Interposer PoP 页面</a></li>
+    <li><a href="https://www.semi.org.cn/site/semi/article/71b132044b064b7a880c20675f5d5ede.html" target="_blank" rel="noopener">SEMI 中国《异构集成：为 AI 和数字化发展注入新动力的变革》</a></li>
+    <li><a href="https://industrial.panasonic.com/ww/electronic-materials/products/liquid-muf" target="_blank" rel="noopener">Panasonic 液态 MUF（Liquid Molded Underfill）产品页</a></li>
+  </ol>
+
+  <hr>
+
+  <h2 id="sec8">7. 给新手的一句话总结（材料 → 应力 → 缺陷 的因果链）</h2>
+
+  <blockquote>
+    <p><strong>① 源头是 CTE 失配</strong>：硅（~3 ppm/°C）、有机基板（~15 ppm/°C）、塑封料（~8–12 ppm/°C）、焊料（20+ ppm/°C）在 150–260 °C 的固化/回流高温冷却回室温时收缩不一致 → 产生热应力、翘曲、残余应力；</p>
+    <p><strong>② 材料配方是第一杠杆</strong>：底部填充/EMC 靠调节<strong>填料含量与粒径、CTE、模量、Tg、黏度</strong>来平衡"低翘曲 vs 好流动"——高填料低 CTE 但难流动易空洞，低黏度填充快但 CTE 高，这是贯穿所有工艺的核心权衡；</p>
+    <p><strong>③ 工艺窗口决定缺陷</strong>：模塑/点胶的温度、压力、流动前沿与速度决定空洞、die shift、焊料挤出/桥接；翘曲与热应力在冷却阶段"冻结"成残余应力；</p>
+    <p><strong>④ 缺陷再反馈到可靠性</strong>：空洞 → 应力集中与湿气通道；分层（界面粘接失效）与裂纹（芯片、低 k 介质、焊点）→ 焊点在温度循环下疲劳开裂 → 最终电失效；所以每个工艺参数都要用 <strong>C-SAM 超声扫描（查空洞/分层）+ X-ray/CT（查焊点桥接/空洞）+ 温度循环可靠性测试</strong>来闭环验证；</p>
+    <p><strong>⑤ 一句话</strong>：<strong>"材料（CTE/模量/填料）决定应力（翘曲/热应力/流动拖曳力），应力决定缺陷（空洞/分层/裂纹/桥接），缺陷决定焊点疲劳寿命"</strong>——仿真（FEM/多物理场）的目的就是在做封装前把这个链条预测出来，这也是你们项目"用神经网络替代传统有限元应力/热仿真"的切入点。</p>
+  </blockquote>
+
+  <hr>
+
+  <h2 id="sec9">8. 备注与存疑清单</h2>
+
+  <ul>
+    <li>具体数值（如硅 2.6–3 ppm/°C、EMC 7–12 ppm/°C）为行业通识量级，未在单篇来源逐条核实，仅作量级参考<span class="doubt">【存疑】</span>。</li>
+    <li>焊料挤出/桥接的机制细节（模塑压力下的挤出量、临界压力）未找到量化数据来源，仅确认该失效模式真实存在（见 §4.4 专利与组装挑战文献）<span class="doubt">【存疑】</span>。</li>
+    <li>NFU（无流动底部填充）在 chiplet 2.5D 量产中的实际占比未见权威统计，本笔记按工艺原理介绍<span class="doubt">【存疑】</span>。</li>
+    <li>CoWoS（TSMC）与本项目硅桥路线不完全相同，如需对比可进一步调研 CoWoS-L（带本地硅互连 LSI）与 EMIB 的填充/塑封差异。</li>
+  </ul>
+</main>
+
+<footer>
+  <p><a href="../index.html">← 返回目录页</a> ｜ 项目学习笔记 · 网页版</p>
+</footer>
+
+</body>
+</html>

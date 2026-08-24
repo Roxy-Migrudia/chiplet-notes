@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>05 · 互连仿真的关键几何参数 · 项目学习笔记</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="inner">
+    <span class="brand">📚 项目学习笔记</span>
+    <span class="sep">/</span>
+    <a href="../index.html">目录</a>
+    <span class="sep">/</span>
+    <span>05 · 互连仿真的关键几何参数</span>
+  </div>
+</header>
+
+<main>
+  <h1>05 · 互连仿真的关键几何参数：哪些结构尺寸决定电流密度、温度与应力分布</h1>
+
+  <div class="meta">
+    <p>来源：联网文献检索 + <code>知识库/01_前沿文献/00_重点文献索引.md</code> ｜ 更新时间：2026-08-24 ｜
+    状态：<strong>文献初稿，待本人审阅后再编入 PPT</strong> ｜ 用途：回答“神经网络物理仿真里，互连部分该把哪些几何/结构参数作为输入”。</p>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-title">本页目录</div>
+    <ol>
+      <li><a href="#sec0">一句话结论</a></li>
+      <li><a href="#sec1">速查表：几何参数 × 物理场 × 影响方向</a></li>
+      <li><a href="#sec2">电流密度与电迁移：哪些尺寸在“管”J 分布</a></li>
+      <li><a href="#sec3">温度场：哪些尺寸在“管”T 分布</a></li>
+      <li><a href="#sec4">应力/翘曲/疲劳：哪些尺寸在“管”σ 与寿命</a></li>
+      <li><a href="#sec5">混合键合特有几何参数</a></li>
+      <li><a href="#sec6">与神经网络建模的对应</a></li>
+      <li><a href="#sec7">来源清单（全部可点击）</a></li>
+      <li><a href="#sec8">存疑与待核实</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="sec0">0. 一句话结论</h2>
+  <blockquote>
+    <p><strong>几何参数不是画图细节，而是模型的输入变量。</strong></p>
+  </blockquote>
+  <ul>
+    <li>电流密度/电迁移 ← bump 直径、焊料高度（standoff height）、焊料帽厚度、Cu 柱高径比、节距、IMC 初始厚度；</li>
+    <li>温度场 ← bump 高度与数量（热路径/并行热通道）、Cu 柱比例、underfill 热导率、die 厚度；</li>
+    <li>应力/翘曲/疲劳 ← bump 高度/直径/节距、芯片与基板厚度、TSV 直径/深宽比/间距、叠层对称性；</li>
+    <li>混合键合界面应力与良率 ← pad 尺寸/间距、Cu 密度与图案、CMP dishing/recess、对位误差。</li>
+  </ul>
+
+  <h2 id="sec1">1. 速查表：几何参数 × 物理场 × 影响方向</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>物理场</th><th>主要几何/结构参数</th><th>文献给出的影响方向</th><th>出处</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>电流密度 J / 电迁移 EM</td>
+          <td>焊料高度与体积、焊料帽厚度、bump 直径、Cu 柱高度与直径、节距、UBM/布线开口、IMC 厚度</td>
+          <td>厚 Cu 柱 + 浅焊料改变电流路径与焦耳热分布，EM 性能改善 <a href="#s3">[S3]</a>；焊点尺寸减小 → J 增大、EM 风险上升 <a href="#s4">[S4]</a><a href="#s5">[S5]</a>；不同 bump 结构 EM 表现显著不同 <a href="#s1">[S1]</a><a href="#s2">[S2]</a>；焊料直径决定 IMC 占比 → bump 电阻变化 <a href="#s7">[S7]</a>；电流拥挤集中在入口与 IMC 界面 <a href="#s8">[S8]</a><a href="#s9">[S9]</a></td>
+          <td>§2</td>
+        </tr>
+        <tr>
+          <td>温度场 T</td>
+          <td>bump 高度/数量/直径、Cu 柱比例、underfill 热导率、die 厚度</td>
+          <td>bump 与 underfill 共同决定封装热阻与结温 <a href="#s10">[S10]</a><a href="#s11">[S11]</a>；Cu 路径热导更高 → 热阻更低 <a href="#s2">[S2]</a>；薄 die 混合键合堆叠散热是瓶颈 <a href="#s30">[S30]</a></td>
+          <td>§3</td>
+        </tr>
+        <tr>
+          <td>应力/翘曲/疲劳</td>
+          <td>bump 高度/直径/节距、芯片厚度、TSV 直径/深宽比/间距、叠层对称性</td>
+          <td>bump 几何对疲劳寿命影响显著（田口法）<a href="#s12">[S12]</a>；节距 + underfill 组合决定热疲劳寿命 <a href="#s13">[S13]</a>；standoff 高度影响高温疲劳寿命 <a href="#s14">[S14]</a>；凸点正下方应力传入低 k 层 <a href="#s17">[S17]</a>；TSV 直径/间距决定应力场与 KOZ <a href="#s19">[S19]</a><a href="#s20">[S20]</a><a href="#s33">[S33]</a></td>
+          <td>§4</td>
+        </tr>
+        <tr>
+          <td>混合键合界面应力/良率</td>
+          <td>pad 尺寸/间距、Cu 密度与图案、dishing/recess、对位误差</td>
+          <td>Cu 密度影响键合面积与界面应力（1 μm 节距 FEM）<a href="#s21">[S21]</a>；pad 尺寸影响 Cu 热膨胀 <a href="#s23">[S23]</a>；pad 布局影响良率 <a href="#s24">[S24]</a>；300 nm/1 μm 节距与对位精度是硬指标 <a href="#s25">[S25]</a><a href="#s26">[S26]</a><a href="#s29">[S29]</a></td>
+          <td>§5</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="sec2">2. 电流密度与电迁移：哪些尺寸在“管”J 分布</h2>
+
+  <h3>2.1 文献明确出现的几何量</h3>
+  <ol>
+    <li><strong>焊料高度（standoff height）与焊料体积</strong>：“厚 Cu 柱 + 浅焊料（thick Cu column + shallow solder）”被专门研究，说明铜柱高度与焊料层厚度的比例是 EM 的关键结构变量：改变电流路径与焦耳热分布 <a href="#s3">[S3]</a>；不同焊料直径下 Cu-Sn IMC 占比不同，导致 bump 电阻随 IMC 形成而变化——<strong>直径是 IMC 占比的杠杆</strong> <a href="#s7">[S7]</a>。</li>
+    <li><strong>bump 直径与节距（尺寸效应）</strong>：细间距 Cu 微凸点的结构差异直接影响电学可靠性 <a href="#s4">[S4]</a>；Sn3.5Ag 倒装焊点的尺寸与几何影响电迁移行为 <a href="#s5">[S5]</a>；细间距 Cu pillar 的不同 bump 结构对 EM 性能有可测影响 <a href="#s1">[S1]</a>；焊料 bump 与 Cu pillar 的 EM、熔断与热机械性能被直接对比 <a href="#s2">[S2]</a>。</li>
+    <li><strong>Cu 柱高度/直径、Ni 阻挡层、焊料帽厚度</strong>：Cu pillar/Ni/Sn-Ag/Cu 微凸点在双向电流下的界面反应与 EM 失效表明，Ni 层、焊料帽与柱体尺寸共同决定失效位置与寿命 <a href="#s8">[S8]</a>；焊料 vs 铜互连的 EM 性能指标有行业级对比 <a href="#s32">[S32]</a>；Sn 在 Ni/Cu 表面的表面扩散是微凸点 EM 的新失效路径——<strong>界面/表面几何进入建模</strong> <a href="#s9">[S9]</a>。</li>
+    <li><strong>电流入口与 IMC 界面（电流拥挤发生地）</strong>：电流拥挤集中在焊料入口与 IMC 界面，局部 J 远高于平均 J；UBM/布线开口尺寸、IMC 初始厚度与形貌是 J 分布的直接输入 <a href="#s8">[S8]</a><a href="#s9">[S9]</a><a href="#s32">[S32]</a>。</li>
+  </ol>
+
+  <h3>2.2 进入神经网络模型的建议</h3>
+  <ul>
+    <li><strong>输入几何</strong>：bump 直径 d、焊料高度 h、焊料帽厚度、Cu 柱高度/直径（或高径比）、节距、UBM 开口、IMC 初始厚度；</li>
+    <li><strong>输出物理量</strong>：J 分布（含电流拥挤因子）、焦耳热、EM 寿命（Black 型 <code>寿命 ∝ J⁻ⁿ · exp(Ea/kT)</code>，n 与 Ea 需用文献标定，IRDS 2024 MET 有失效机理与指标框架 <a href="#s31">[S31]</a>）；</li>
+    <li><strong>网格/子域提示</strong>：IMC 界面与入口的局部 J 梯度大，应与项目现有“边缘/界面子域细化”思路一致（参考 MDPI 子模型范式 <a href="#s19">[S19]</a>）。</li>
+  </ul>
+
+  <h2 id="sec3">3. 温度场：哪些尺寸在“管”T 分布</h2>
+  <ol>
+    <li><strong>bump 高度 = 热路径长度；bump 数量/直径 = 并行热通道</strong>：bump 与 underfill 对倒装封装热行为有可测影响 <a href="#s10">[S10]</a><a href="#s11">[S11]</a>。</li>
+    <li><strong>Cu 柱比例</strong>：Cu 的热导率远高于焊料，Cu 柱占比越高、热路径越“铜”，封装热阻越低（与 EM/热机械性能对比同源 <a href="#s2">[S2]</a>）。</li>
+    <li><strong>underfill/塑封热导率</strong>：有无 underfill、不同 underfill 材料会改变结温与温度分布 <a href="#s10">[S10]</a><a href="#s11">[S11]</a>；薄 die 混合键合堆叠的散热瓶颈来自极薄的硅与高密度互连 <a href="#s30">[S30]</a>。</li>
+    <li><strong>die/基板厚度与功率图</strong>：温度场由功率密度 + 各层厚度 + 材料热导共同决定（与知识库中 PI-ONet、HBM 结温代理等工作同路）。</li>
+  </ol>
+  <h3>3.1 进入神经网络模型的建议</h3>
+  <ul>
+    <li><strong>输入几何/材料</strong>：bump 高度、直径与阵列密度、Cu 柱比例、underfill/EMC 热导率、die/基板厚度、功率分布；</li>
+    <li><strong>输出物理量</strong>：稳态/瞬态温度场、热点位置与结温。</li>
+  </ul>
+
+  <h2 id="sec4">4. 应力/翘曲/疲劳：哪些尺寸在“管”σ 与寿命</h2>
+  <ol>
+    <li><strong>bump 几何（直径/高度/节距）是疲劳寿命的一阶因子</strong>：田口方法研究表明 bump 几何对倒装封装疲劳寿命影响显著 <a href="#s12">[S12]</a>；bump 节距与 underfill 变化共同决定热疲劳寿命 <a href="#s13">[S13]</a>；standoff 高度变化直接改变高温疲劳寿命 <a href="#s14">[S14]</a>；FEA + RSM 参数化研究表明互连设计是热应力/应变分析的核心变量 <a href="#s15">[S15]</a>。</li>
+    <li><strong>Cu pillar 与低 k 介质层</strong>：Cu pillar bump 用于 ultra-low-k 芯片时，凸点下方局部应力传入介质层 <a href="#s17">[S17]</a>；40 μm 节距 Cu-Pillar/SnAg 微凸点有专门可靠性研究 <a href="#s16">[S16]</a>。</li>
+    <li><strong>TSV 几何（直径/深宽比/间距/布局）</strong>：TSV 热应力改变周围载流子迁移率并形成 keep-out zone（KOZ），KOZ 大小由 TSV 几何决定 <a href="#s20">[S20]</a>；周期性 TSV 阵列应力有解析近似解——直径、间距、布局决定应力场形态 <a href="#s33">[S33]</a>；Cu CTE ≈ 17 ppm/K、Si ≈ 2.6 ppm/K 是热应力根源 <a href="#s34">[S34]</a>；TSV 中介层温度循环子模型仿真把全局-局部应力分开算 <a href="#s19">[S19]</a>。</li>
+    <li><strong>大面积 2.5D 模塑封装翘曲</strong>：叠层厚度、芯片/中介层/基板尺寸与对称性 <a href="#s18">[S18]</a>。</li>
+  </ol>
+  <h3>4.1 进入神经网络模型的建议</h3>
+  <ul>
+    <li><strong>输入几何</strong>：bump 高度/直径/节距、芯片/中介层/基板/塑封各层厚度、TSV 直径/深宽比/间距/布局、叠层对称性；</li>
+    <li><strong>输出物理量</strong>：应力场（含界面应力）、翘曲形貌、疲劳寿命判据（应变能密度/塑性应变等）；</li>
+    <li><strong>直接证据</strong>：TSV-INet 已把“任意分布 TSV 布局”作为网络输入来预测晶圆翘曲 <a href="#s27">[S27]</a>，说明几何布局作为输入特征可行；WarpagePINN 走热翘曲 PINN 路线 <a href="#s28">[S28]</a>。</li>
+  </ul>
+
+  <h2 id="sec5">5. 混合键合特有几何参数</h2>
+  <ol>
+    <li><strong>pad 尺寸与节距</strong>：演示/量产已到 300 nm 节距（50 nm 对位）与 1 μm 节距（&lt;300 nm 对位）<a href="#s25">[S25]</a><a href="#s26">[S26]</a>；Intel Foveros Direct 给出 ≤10 μm、&gt;1 万连接/mm² 的量产指标 <a href="#s29">[S29]</a>。</li>
+    <li><strong>Cu 密度与图案</strong>：1 μm 节距混合键合 FEM 表明 Cu 密度影响键合面积与界面应力 <a href="#s21">[S21]</a>；Cu pad 尺寸影响 Cu 在退火中的热膨胀行为 <a href="#s23">[S23]</a>；Cu pad 非弹性变形下的鲁棒设计是可靠性建模对象 <a href="#s22">[S22]</a>。</li>
+    <li><strong>CMP dishing / Cu recess 与对位误差</strong>：纳米级平整度与对位决定界面接触质量与良率；YAP/YAP+ 把 pad 布局作为良率模型输入 <a href="#s24">[S24]</a>。</li>
+    <li><strong>晶圆/芯片厚度与翘曲</strong>：混合键合对超薄 die 的翘曲极敏感（C2W 翘曲工程文献见知识库 TSV 基础笔记 4.5 节）。</li>
+  </ol>
+  <h3>5.1 进入神经网络模型的建议</h3>
+  <ul>
+    <li><strong>输入几何</strong>：pad 尺寸/间距、Cu 密度与图案、dishing/recess、对位误差、退火温度、die/晶圆厚度；</li>
+    <li><strong>输出物理量</strong>：界面应力、键合面积/良率、热膨胀与翘曲。</li>
+  </ul>
+
+  <h2 id="sec6">6. 与神经网络建模的对应（初步建议，待与师兄确认）</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>模型子域（现有四分）</th><th>建议增加的几何输入</th><th>对应物理场输出</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>中介层块（bulk）</td><td>各层厚度、材料参数、TSV 平均密度</td><td>全局温度场、翘曲</td></tr>
+        <tr><td>中介层边缘（edge）</td><td>边缘几何、与基板/塑封边界</td><td>边缘高梯度应力</td></tr>
+        <tr><td>TSV 实体（body）</td><td>TSV 直径、深宽比、侧壁角、间距</td><td>局部应力集中</td></tr>
+        <tr><td>TSV 边缘（liner/interface）</td><td>阻挡层/绝缘层厚度、Cu 突起</td><td>界面应力、失效萌生</td></tr>
+        <tr><td><strong>互连层（建议新增或并入边界）</strong></td><td>bump/pillar/pad 直径、高度、节距、焊料帽厚度、IMC 厚度</td><td>J、T、σ、疲劳寿命</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <blockquote>
+    <p>TSV-INet 的“任意布局 → 翘曲”输入方式 <a href="#s27">[S27]</a> 与 YAP+ 的“pad 布局 → 良率”输入方式 <a href="#s24">[S24]</a> 说明：<strong>几何布局直接作为网络输入是本领域已有做法</strong>。</p>
+  </blockquote>
+
+  <h2 id="sec7">7. 来源清单（全部可点击）</h2>
+  <h3>互连 / 电迁移</h3>
+  <ul>
+    <li id="s1">[S1] IEEE: <a href="https://ieeexplore.ieee.org/document/7159657" target="_blank" rel="noopener">The impact and performance of electromigration on fine pitch Cu pillar with different bump structure for flip chip packaging</a></li>
+    <li id="s2">[S2] IEEE: <a href="https://ieeexplore.ieee.org/document/5765847" target="_blank" rel="noopener">Electromigration, fuse and thermo-mechanical performance of solder bump versus Cu pillar flip chip assemblies</a></li>
+    <li id="s3">[S3] J. Appl. Phys. 2006: <a href="https://pubs.aip.org/aip/jap/article-pdf/doi/10.1063/1.2402475/13572287/123513_1_online.pdf" target="_blank" rel="noopener">Electromigration in flip chip solder joints having a thick Cu column bump and a shallow solder interconnect</a></li>
+    <li id="s4">[S4] IEEE: <a href="https://ieeexplore.ieee.org/abstract/document/6897514" target="_blank" rel="noopener">Structure effects on the electrical reliability of fine-pitch Cu micro-bumps for 3D integration</a></li>
+    <li id="s5">[S5] IEEE: <a href="https://ieeexplore.ieee.org/document/7236670" target="_blank" rel="noopener">Size and geometry effects on the electromigration behavior of flip-chip Sn3.5Ag solder joints</a></li>
+    <li id="s6">[S6] IEEE: <a href="https://ieeexplore.ieee.org/document/7486822" target="_blank" rel="noopener">Electromigration in microbumps with Cu-Sn intermetallic compounds</a></li>
+    <li id="s7">[S7] IEEE: <a href="https://ieeexplore.ieee.org/document/7224407" target="_blank" rel="noopener">Bump resistance change behavior due to Cu-Sn IMCs formation with various solder diameters</a></li>
+    <li id="s8">[S8] Materials 2023, 16(3):1134（PMC 开放获取）: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9920230/" target="_blank" rel="noopener">Interfacial Reaction and Electromigration Failure of Cu Pillar/Ni/Sn-Ag/Cu Microbumps under Bidirectional Current Stressing</a></li>
+    <li id="s9">[S9] Scientific Reports 2018: <a href="https://www.nature.com/articles/s41598-018-23809-1" target="_blank" rel="noopener">A new failure mechanism of electromigration by surface diffusion of Sn on Ni and Cu metallization in microbumps</a></li>
+    <li id="s32">[S32] IEEE IRPS 2016: <a href="https://doi.org/10.1109/IRPS.2016.7574565" target="_blank" rel="noopener">焊料 vs 铜互连电迁移性能指标</a></li>
+    <li id="s31">[S31] IRDS 2024 MET: <a href="https://irds.ieee.org/images/files/pdf/2024/2024IRDS_MET.pdf" target="_blank" rel="noopener">互连 EM 失效机理与路线图（PDF）</a></li>
+  </ul>
+  <h3>热</h3>
+  <ul>
+    <li id="s10">[S10] IEEE: <a href="https://ieeexplore.ieee.org/document/6471193" target="_blank" rel="noopener">Bump and Underfill Effects on Thermal Behaviors of Flip-Chip LED Packages: Measurement and Modeling</a></li>
+    <li id="s11">[S11] IEEE: <a href="https://ieeexplore.ieee.org/abstract/document/5699638" target="_blank" rel="noopener">Thermal measurements and analysis of flip-chip LED packages with and without underfills</a></li>
+    <li id="s30">[S30] SemiEngineering: <a href="https://semiengineering.com/examination-of-thermal-issues-related-to-hybrid-bonding-of-3d-stacked-hbm/" target="_blank" rel="noopener">Examination of Thermal Issues Related to Hybrid Bonding of 3D-Stacked HBM</a></li>
+  </ul>
+  <h3>应力 / 翘曲 / 疲劳</h3>
+  <ul>
+    <li id="s12">[S12] J. Composite Materials（Sage）: <a href="https://journals.sagepub.com/doi/abs/10.1177/0731684406055459" target="_blank" rel="noopener">The Geometrical Effects of Bumps on the Fatigue Life of Flip-chip Packages by Taguchi Method</a></li>
+    <li id="s13">[S13] KoreaScience: <a href="http://koreascience.or.kr/article/JAKO201023557667065.page" target="_blank" rel="noopener">Simulation of Thermal Fatigue Life Prediction of Flip Chip with Lead-free Solder Joints by Variation in Bump Pitch and Underfill</a></li>
+    <li id="s14">[S14] Microelectronics Reliability: <a href="https://www.sciencedirect.com/science/article/abs/pii/S0026271412003757" target="_blank" rel="noopener">High-temperature fatigue life of flip chip lead-free solder joints at varying component stand-off height</a></li>
+    <li id="s15">[S15] IEEE: <a href="https://ieeexplore.ieee.org/document/1564669" target="_blank" rel="noopener">Thermo-mechanical Reliability Study of High I/Os Flip Chip On Laminated Substrate Based on FEA, RSM and Interfacial Fracture Mechanics</a></li>
+    <li id="s16">[S16] IEEE TCPMT 2019: <a href="https://doi.org/10.1109/TCPMT.2018.2885022" target="_blank" rel="noopener">40 μm Cu-Pillar/SnAg microbump reliability</a></li>
+    <li id="s17">[S17] IEEE: <a href="https://www.infona.pl/resource/bwmeta1.element.ieee-art-000005490819" target="_blank" rel="noopener">Reliability of Cu pillar bumps for flip-chip packages with ultra low-k dielectrics</a></li>
+    <li id="s18">[S18] IEEE ECTC: <a href="https://ieeexplore.ieee.org/document/10818872" target="_blank" rel="noopener">Warpage and Stress Analysis in Molded 2.5D Package Chiplet Integration</a></li>
+    <li id="s19">[S19] MDPI Micromachines 2024, 15(8), 986: <a href="https://www.mdpi.com/2072-666X/15/8/986" target="_blank" rel="noopener">Reliability Simulation Analysis of TSV Structure in Silicon Interposer under Temperature Cycling（子模型范式）</a></li>
+    <li id="s20">[S20] IEEE: <a href="https://ieeexplore.ieee.org/abstract/document/6184295" target="_blank" rel="noopener">Effect of Thermal Stresses on Carrier Mobility and Keep-Out Zone Around Through-Silicon Vias for 3-D Integration</a></li>
+    <li id="s33">[S33] Microelectronics Reliability: <a href="https://www.sciencedirect.com/science/article/abs/pii/S0026271412004209" target="_blank" rel="noopener">Analytical estimates of stress around a doubly periodic arrangement of TSVs</a></li>
+    <li id="s34">[S34] Springer Discover Nano: <a href="https://link.springer.com/article/10.1186/s11671-017-1831-4" target="_blank" rel="noopener">3D IC 关键工艺 TSV 综述（Cu CTE≈17 ppm/K vs Si≈2.6 ppm/K）</a></li>
+  </ul>
+  <h3>混合键合 / 良率</h3>
+  <ul>
+    <li id="s21">[S21] IEEE: <a href="https://xplorestaging.ieee.org/document/11157265" target="_blank" rel="noopener">Finite Element Modeling of the Effects of Copper Density on Bonding Area and Interfacial Stress in 1 μm Pitch Hybrid Bonding</a></li>
+    <li id="s22">[S22] IEEE: <a href="https://ieeexplore.ieee.org/document/11561351" target="_blank" rel="noopener">Robust Design of Hybrid Bonding Considering Cu Pad Inelastic Deformation for Reliability</a></li>
+    <li id="s23">[S23] SeoulTech: <a href="https://pure.seoultech.ac.kr/en/publications/the-influence-of-cu-pad-dimensions-on-the-thermal-expansion-of-cu/" target="_blank" rel="noopener">The Influence of Cu Pad Dimensions on the Thermal Expansion of Cu in Cu/SiO2 Hybrid Bonding</a></li>
+    <li id="s24">[S24] YAP+（TechRxiv 开放预印本）: <a href="https://www.techrxiv.org/doi/full/10.36227/techrxiv.176289269.97841494/v1" target="_blank" rel="noopener">Pad-Layout-Aware Yield Modeling and Simulation for Hybrid Bonding</a></li>
+    <li id="s25">[S25] IEEE: <a href="https://ieeexplore.ieee.org/abstract/document/11561469" target="_blank" rel="noopener">300 nm pitch SiCN hybrid bonding (50 nm alignment)</a></li>
+    <li id="s26">[S26] IEEE: <a href="https://ieeexplore.ieee.org/document/8309213" target="_blank" rel="noopener">1 μm pitch direct hybrid bonding (&lt;300 nm alignment)</a></li>
+    <li id="s29">[S29] Intel: <a href="https://www.intel.com/content/dam/www/central-libraries/us/en/documents/2025-11/foveros-direct-3d-tech-brief.pdf" target="_blank" rel="noopener">Foveros Direct 3D Tech Brief（≤10 μm、&gt;1 万凸点/mm²，PDF）</a></li>
+  </ul>
+  <h3>与神经网络建模直接相关</h3>
+  <ul>
+    <li id="s27">[S27] TSV-INet（Nature Microsystems &amp; Nanoengineering 2026）: <a href="https://www.nature.com/articles/s41378-026-01352-8" target="_blank" rel="noopener">任意分布 TSV 布局 → 晶圆翘曲仿真</a></li>
+    <li id="s28">[S28] WarpagePINN（arXiv 2026）: <a href="https://scirate.com/arxiv/2607.00364" target="_blank" rel="noopener">两阶段 PINN 热翘曲预测</a></li>
+  </ul>
+
+  <h2 id="sec8">8. 存疑与待核实</h2>
+  <ol>
+    <li><strong>具体数值未回填</strong>：各篇论文中的参数水平（如田口法因子的 bump 直径/高度范围、standoff 高度取值、EM 的 n/Ea 标定值）需下载全文后补充，本文档先保留“方向性结论”。</li>
+    <li><strong>部分 IEEE 条目的年份/会议名</strong>：以 IEEE 页面为准（搜索结果页未全部显示年份）。</li>
+    <li><strong>“哪些参数对神经网络精度最敏感”没有直接论文</strong>：建议后续用 FEM 参数扫描（例如直径 ±20%、高度 ±20%、节距 ±20%）生成数据集，自己测敏感性，再决定网络输入取舍。</li>
+    <li><span class="doubt">【存疑】</span><strong>[S21] 为 staging 页面</strong>：正式链接以 IEEE Xplore 检索结果为准。</li>
+    <li><span class="doubt">【存疑】</span><strong>混合键合 dishing/recess 的定量影响</strong>：目前只查到定性结论与良率模型（YAP+），定量 FEM 文献待补。</li>
+  </ol>
+
+  <hr>
+  <blockquote>
+    <p>来源与完整出处见正文内链接与知识库 <code>01_前沿文献/00_重点文献索引.md</code>；无法核实的内容均已标注<span class="doubt">【存疑】</span>。</p>
+  </blockquote>
+</main>
+
+<footer>
+  <p><a href="../index.html">← 返回目录页</a> ｜ 项目学习笔记 · 网页版</p>
+</footer>
+
+</body>
+</html>
